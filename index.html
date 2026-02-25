@@ -3,7 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>카츠헤세드 회의록</title>
+    <title>헤세드 회의록</title>
+    
+    <link rel="icon" href="logo.png">
+    <link rel="apple-touch-icon" href="logo.png">
+    <meta name="apple-mobile-web-app-title" content="헤세드 회의록">
+    <meta name="application-name" content="헤세드 회의록">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+
     <style>
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
 
@@ -33,6 +41,52 @@
             overflow-x: hidden;
         }
 
+        /* 로그인 화면 (전체 덮기) */
+        #loginScreen {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: var(--brand-dark);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        #loginScreen h1 {
+            color: var(--brand-gold);
+            margin-bottom: 10px;
+            font-size: 1.8rem;
+        }
+
+        #loginScreen p {
+            color: #aaaaaa;
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+        }
+
+        .login-btn {
+            background-color: white;
+            color: var(--brand-dark);
+            border: none;
+            padding: 14px 24px;
+            font-size: 1rem;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .login-btn:active {
+            background-color: #eeeeee;
+        }
+
         /* 헤더 스타일 */
         header {
             background-color: var(--brand-dark);
@@ -45,8 +99,14 @@
             z-index: 100;
             display: flex;
             align-items: center;
+            justify-content: space-between;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             height: 60px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
         }
 
         .menu-btn {
@@ -69,6 +129,16 @@
             color: var(--brand-gold);
         }
 
+        .logout-btn {
+            background: none;
+            border: 1px solid var(--brand-gold);
+            color: var(--brand-gold);
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
         /* 사이드바 스타일 */
         .sidebar {
             width: var(--sidebar-width);
@@ -77,7 +147,7 @@
             position: fixed;
             top: 0;
             left: calc(-1 * var(--sidebar-width));
-            padding-top: 60px; /* 헤더 높이만큼 띄움 */
+            padding-top: 60px;
             transition: left 0.3s ease;
             z-index: 90;
             box-shadow: 2px 0 10px rgba(0,0,0,0.05);
@@ -130,11 +200,12 @@
         /* 메인 컨테이너 */
         .main-content {
             flex: 1;
-            padding: 80px 20px 20px; /* 헤더 높이 + 여백 */
+            padding: 80px 20px 20px;
             max-width: 800px;
             margin: 0 auto;
             width: 100%;
             transition: margin-left 0.3s ease;
+            display: none; /* 비로그인시 숨김 */
         }
 
         /* 폼(입력창) 스타일 */
@@ -286,7 +357,7 @@
         }
 
         .minute-card.expanded .minute-body {
-            max-height: 2000px; /* 충분히 큰 값으로 설정 */
+            max-height: 2000px; 
             transition: max-height 0.5s ease-in;
         }
 
@@ -300,7 +371,6 @@
             color: var(--text-muted);
         }
 
-        /* 데스크탑 화면에서 사이드바 고정 */
         @media (min-width: 768px) {
             .menu-btn {
                 display: none;
@@ -320,19 +390,31 @@
 </head>
 <body>
 
+    <div id="loginScreen">
+        <h1>KATSU HESED</h1>
+        <p>팀원 전용 회의록 시스템입니다.<br>구글 계정으로 로그인해주세요.</p>
+        <button id="googleLoginBtn" class="login-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+            Google 계정으로 시작하기
+        </button>
+    </div>
+
     <header>
-        <button class="menu-btn" id="menuBtn">☰</button>
-        <h1>KATSU HESED 회의록</h1>
+        <div class="header-left">
+            <button class="menu-btn" id="menuBtn">☰</button>
+            <h1>헤세드 회의록</h1>
+        </div>
+        <button id="logoutBtn" class="logout-btn" style="display:none;">로그아웃</button>
     </header>
 
     <div class="sidebar" id="sidebar">
         <ul class="month-list" id="monthList">
             <li class="month-item active" data-month="all">전체 보기</li>
-            </ul>
+        </ul>
     </div>
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-    <div class="main-content">
+    <div class="main-content" id="mainContent">
         <div class="form-section">
             <form id="minuteForm">
                 <div class="input-group">
@@ -358,33 +440,81 @@
         <div id="currentViewTitle" class="list-header">전체 회의록</div>
         <div id="loading">데이터를 불러오는 중입니다...</div>
         <div class="minutes-list" id="minutesList">
-            </div>
+        </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
-        // ★ 본인의 Firebase 프로젝트 설정값으로 반드시 변경해주세요 ★
-  const firebaseConfig = {
-    apiKey: "AIzaSyANj0f_hc1zGXTnTM4TZt-kQTS-dY0jFPY",
-    authDomain: "katsu-hesed-minutes.firebaseapp.com",
-    projectId: "katsu-hesed-minutes",
-    storageBucket: "katsu-hesed-minutes.firebasestorage.app",
-    messagingSenderId: "421404505285",
-    appId: "1:421404505285:web:b209faa4b97e15a7162cac"
-  };
+        // ★★★ 여기에 본인의 Firebase 설정값을 다시 넣어주세요! ★★★
+const firebaseConfig = {
+  apiKey: "AIzaSyANj0f_hc1zGXTnTM4TZt-kQTS-dY0jFPY",
+  authDomain: "katsu-hesed-minutes.firebaseapp.com",
+  projectId: "katsu-hesed-minutes",
+  storageBucket: "katsu-hesed-minutes.firebasestorage.app",
+  messagingSenderId: "421404505285",
+  appId: "1:421404505285:web:b209faa4b97e15a7162cac"
+};
+
+        // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
 
-        let allMinutes = []; // 전체 데이터를 저장할 배열
-        let currentFilter = 'all'; // 현재 선택된 월 필터
+        let allMinutes = []; 
+        let currentFilter = 'all'; 
+        let unsubscribeSnapshot = null; // 데이터베이스 구독 해제용 변수
 
-        // 오늘 날짜 기본값
+        // UI 요소
+        const loginScreen = document.getElementById('loginScreen');
+        const mainContent = document.getElementById('mainContent');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const googleLoginBtn = document.getElementById('googleLoginBtn');
+
+        // 1. 로그인 / 로그아웃 처리
+        googleLoginBtn.addEventListener('click', () => {
+            signInWithPopup(auth, provider).catch((error) => {
+                console.error("로그인 에러:", error);
+                alert("로그인 중 오류가 발생했습니다: " + error.message);
+            });
+        });
+
+        logoutBtn.addEventListener('click', () => {
+            signOut(auth).then(() => {
+                // 로그아웃 성공 시
+                if(unsubscribeSnapshot) {
+                    unsubscribeSnapshot(); // 실시간 연동 해제
+                }
+                document.getElementById('minutesList').innerHTML = ''; // 화면 지우기
+            }).catch((error) => {
+                alert("로그아웃 오류: " + error.message);
+            });
+        });
+
+        // 2. 로그인 상태 감지기 (실시간 감시)
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // 로그인 됨: 메인 화면 보여주기
+                loginScreen.style.display = 'none';
+                mainContent.style.display = 'block';
+                logoutBtn.style.display = 'block';
+                
+                // 데이터베이스 불러오기 시작
+                startFetchingData();
+            } else {
+                // 로그아웃 됨: 로그인 화면 보여주기
+                loginScreen.style.display = 'flex';
+                mainContent.style.display = 'none';
+                logoutBtn.style.display = 'none';
+            }
+        });
+
         document.getElementById('date').valueAsDate = new Date();
 
-        // 사이드바 토글 로직 (모바일용)
         const menuBtn = document.getElementById('menuBtn');
         const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('sidebarOverlay');
@@ -397,7 +527,6 @@
         menuBtn.addEventListener('click', toggleSidebar);
         overlay.addEventListener('click', toggleSidebar);
 
-        // 회의록 등록 로직
         document.getElementById('minuteForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -412,7 +541,8 @@
                     date: date,
                     participants: participants,
                     content: content,
-                    createdAt: serverTimestamp()
+                    createdAt: serverTimestamp(),
+                    author: auth.currentUser.email // 작성자 이메일 추가 저장
                 });
                 
                 document.getElementById('title').value = '';
@@ -425,22 +555,19 @@
             }
         });
 
-        // 월별 필터 목록 업데이트
         function updateMonthSidebar() {
             const monthList = document.getElementById('monthList');
-            // '전체 보기' 메뉴 유지
             monthList.innerHTML = `<li class="month-item ${currentFilter === 'all' ? 'active' : ''}" data-month="all">전체 보기</li>`;
             
             const months = new Set();
             allMinutes.forEach(minute => {
-                const dateStr = minute.date; // YYYY-MM-DD
+                const dateStr = minute.date; 
                 if(dateStr) {
-                    const monthStr = dateStr.substring(0, 7); // YYYY-MM 추출
+                    const monthStr = dateStr.substring(0, 7); 
                     months.add(monthStr);
                 }
             });
 
-            // 내림차순 정렬 (최신 월이 위로)
             const sortedMonths = Array.from(months).sort().reverse();
 
             sortedMonths.forEach(month => {
@@ -454,22 +581,18 @@
                 monthList.appendChild(li);
             });
 
-            // 사이드바 클릭 이벤트 달기
             document.querySelectorAll('.month-item').forEach(item => {
                 item.addEventListener('click', (e) => {
-                    // 활성화 스타일 변경
                     document.querySelectorAll('.month-item').forEach(el => el.classList.remove('active'));
                     e.target.classList.add('active');
                     
                     currentFilter = e.target.dataset.month;
                     
-                    // 제목 변경
                     const titleEl = document.getElementById('currentViewTitle');
                     titleEl.innerText = currentFilter === 'all' ? '전체 회의록' : e.target.innerText + ' 회의록';
                     
                     renderMinutes();
                     
-                    // 모바일이면 클릭 후 사이드바 닫기
                     if(window.innerWidth < 768) {
                         toggleSidebar();
                     }
@@ -477,7 +600,6 @@
             });
         }
 
-        // 화면에 회의록 카드 그리기
         function renderMinutes() {
             const minutesList = document.getElementById('minutesList');
             minutesList.innerHTML = '';
@@ -494,8 +616,6 @@
             filteredMinutes.forEach((data, index) => {
                 const card = document.createElement('div');
                 card.className = 'minute-card';
-                // 가장 최신 글 1개만 기본으로 펼쳐두기 (선택사항, 현재는 모두 접어둠)
-                // if(index === 0) card.classList.add('expanded');
 
                 card.innerHTML = `
                     <div class="minute-header">
@@ -513,7 +633,6 @@
                     </div>
                 `;
 
-                // 아코디언(접기/펼치기) 클릭 이벤트
                 const header = card.querySelector('.minute-header');
                 header.addEventListener('click', () => {
                     card.classList.toggle('expanded');
@@ -523,20 +642,23 @@
             });
         }
 
-        // 실시간 데이터 불러오기
-        const q = query(collection(db, "katsu_meetings"), orderBy("date", "desc"), orderBy("createdAt", "desc"));
-        
-        onSnapshot(q, (snapshot) => {
-            document.getElementById('loading').style.display = 'none';
-            allMinutes = [];
+        // 로그인 성공 시에만 데이터를 불러오도록 분리한 함수
+        function startFetchingData() {
+            document.getElementById('loading').style.display = 'block';
+            const q = query(collection(db, "katsu_meetings"), orderBy("date", "desc"), orderBy("createdAt", "desc"));
             
-            snapshot.forEach((doc) => {
-                allMinutes.push(doc.data());
-            });
+            unsubscribeSnapshot = onSnapshot(q, (snapshot) => {
+                document.getElementById('loading').style.display = 'none';
+                allMinutes = [];
+                
+                snapshot.forEach((doc) => {
+                    allMinutes.push(doc.data());
+                });
 
-            updateMonthSidebar();
-            renderMinutes();
-        });
+                updateMonthSidebar();
+                renderMinutes();
+            });
+        }
     </script>
 </body>
 </html>
