@@ -315,6 +315,28 @@
             color: var(--brand-dark);
         }
 
+        .title-right-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .delete-btn {
+            background: none;
+            border: 1px solid #e74c3c;
+            color: #e74c3c;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .delete-btn:hover {
+            background-color: #e74c3c;
+            color: white;
+        }
+
         .toggle-icon {
             color: var(--brand-gold);
             font-weight: bold;
@@ -455,11 +477,12 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        // ★ deleteDoc, doc 모듈 추가 수입
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
         // ★★★ 여기에 본인의 Firebase 설정값을 다시 넣어주세요! ★★★
- const firebaseConfig = {
+const firebaseConfig = {
   apiKey: "AIzaSyANj0f_hc1zGXTnTM4TZt-kQTS-dY0jFPY",
   authDomain: "katsu-hesed-minutes.firebaseapp.com",
   projectId: "katsu-hesed-minutes",
@@ -618,11 +641,15 @@
                 const card = document.createElement('div');
                 card.className = 'minute-card';
 
+                // 삭제 버튼이 포함된 구조로 변경
                 card.innerHTML = `
                     <div class="minute-header">
                         <div class="minute-title-row">
                             <h3 class="minute-title">${data.title}</h3>
-                            <span class="toggle-icon">▼</span>
+                            <div class="title-right-wrap">
+                                <button class="delete-btn" data-id="${data.id}">삭제</button>
+                                <span class="toggle-icon">▼</span>
+                            </div>
                         </div>
                         <div class="minute-participants">참석: ${data.participants}</div>
                         <span class="minute-date">${data.date}</span>
@@ -634,9 +661,32 @@
                     </div>
                 `;
 
+                // 아코디언(접기/펼치기) 클릭 이벤트
                 const header = card.querySelector('.minute-header');
                 header.addEventListener('click', () => {
                     card.classList.toggle('expanded');
+                });
+
+                // 삭제 버튼 클릭 이벤트 (아코디언 토글 방지 및 비밀번호 확인)
+                const deleteBtn = card.querySelector('.delete-btn');
+                deleteBtn.addEventListener('click', async (e) => {
+                    e.stopPropagation(); // 이 영역 클릭 시 카드가 접히거나 펼쳐지는 것을 막음
+                    
+                    const docId = e.target.getAttribute('data-id');
+                    const pwd = prompt("회의록을 삭제하시려면 비밀번호를 입력하세요.");
+                    
+                    if (pwd === "9395") {
+                        try {
+                            // Firestore에서 해당 문서 삭제
+                            await deleteDoc(doc(db, "katsu_meetings", docId));
+                            alert("회의록이 안전하게 삭제되었습니다.");
+                        } catch (error) {
+                            console.error("삭제 에러:", error);
+                            alert("삭제 중 오류가 발생했습니다.");
+                        }
+                    } else if (pwd !== null) { // 사용자가 취소를 누르지 않고 틀린 비밀번호를 입력했을 때
+                        alert("비밀번호가 일치하지 않습니다.");
+                    }
                 });
 
                 minutesList.appendChild(card);
@@ -645,14 +695,15 @@
 
         function startFetchingData() {
             document.getElementById('loading').style.display = 'block';
-            const q = query(collection(db, "katsu_meetings"), orderBy("date", "desc"), orderBy("createdAt", "desc"));
+            const q = query(collection(db, "katsu_meetings"), orderBy("date", "desc"));
             
             unsubscribeSnapshot = onSnapshot(q, (snapshot) => {
                 document.getElementById('loading').style.display = 'none';
                 allMinutes = [];
                 
                 snapshot.forEach((doc) => {
-                    allMinutes.push(doc.data());
+                    // 데이터베이스의 고유 문서 ID를 포함시켜서 배열에 저장
+                    allMinutes.push({ id: doc.id, ...doc.data() });
                 });
 
                 updateMonthSidebar();
