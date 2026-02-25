@@ -1,0 +1,21 @@
+{
+  "name": "헤세드 회의록",
+  "short_name": "헤세드회의록",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#F9F9F9",
+  "theme_color": "#222222",
+  "icons": [
+    {
+      "src": "logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
